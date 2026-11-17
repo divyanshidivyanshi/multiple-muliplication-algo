@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Multiplication Visualizer | Computer Organization & Architecture</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        indigo: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        /* Smooth custom scrollbar */
+        ::-webkit-scrollbar {
+            height: 7px;
+            width: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* SVG Flowchart Active Pulse */
+        @keyframes pulseGlow {
+            0%, 100% {
+                filter: drop-shadow(0 0 6px rgba(79, 70, 229, 0.55));
+            }
+            50% {
+                filter: drop-shadow(0 0 14px rgba(79, 70, 229, 0.85));
+            }
+        }
+        .svg-node-active {
+            animation: pulseGlow 1.8s infinite ease-in-out;
+        }
+        .bit-pill {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .gate-highlight {
+            transform: scale(1.12);
+            box-shadow: 0 0 0 2px #4f46e5, 0 4px 10px rgba(79, 70, 229, 0.25);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-indigo-100 selection:text-indigo-800">
+
+    <!-- Vibrant Educational Hero Banner (Inspired by dhruvpatel004.github.io) -->
+    <header class="bg-gradient-to-br from-indigo-700 via-indigo-600 to-blue-600 text-white shadow-lg relative overflow-hidden">
+        <!-- Subtle geometric background decoration -->
+        <div class="absolute inset-0 opacity-10 pointer-events-none">
+            <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid-pattern" width="32" height="32" patternUnits="userSpaceOnUse">
+                        <path d="M 32 0 L 0 0 0 32" fill="none" stroke="white" stroke-width="1"/>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid-pattern)" />
+            </svg>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-14 sm:pt-10 sm:pb-16 relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-xs font-semibold tracking-wide uppercase mb-4">
+                <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                <span>Computer Organization & Architecture</span>
+            </div>
+            <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
+                Binary Multiplication Visualizer
+            </h1>
+            <p class="mt-3 text-sm sm:text-base text-indigo-100 max-w-2xl mx-auto leading-relaxed">
+                Interactive step-by-step hardware trace, register simulator, and live flowchart for Booth's Algorithm, Array Multiplication, and Signed Bit Multiplication.
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Content Container Overlapping Hero Slightly -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12 space-y-6 relative z-20">
+
+        <!-- Sleek Floating Algorithm Switcher Card -->
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200/90 p-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button id="tab-booth" onclick="switchMode('booth')" class="mode-tab flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-bold transition-all bg-indigo-600 text-white shadow-sm">
+                <i data-lucide="git-commit-horizontal" class="w-4 h-4"></i>
+                <span>Booth's Multiplication</span>
+            </button>
+            <button id="tab-array" onclick="switchMode('array')" class="mode-tab flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                <i data-lucide="grid" class="w-4 h-4"></i>
+                <span>Array Multiplication</span>
+            </button>
+            <button id="tab-signed" onclick="switchMode('signed')" class="mode-tab flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                <i data-lucide="binary" class="w-4 h-4"></i>
+                <span>Signed Bit Multiplication</span>
+            </button>
+        </div>
+
+        <!-- Validation / Error Alert -->
+        <div id="alertBox" class="hidden rounded-xl p-4 bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3 shadow-sm">
+            <i data-lucide="alert-circle" class="w-5 h-5 text-rose-600 shrink-0 mt-0.5"></i>
+            <div class="flex-1" id="alertMessage"></div>
+            <button onclick="hideAlert()" class="text-rose-400 hover:text-rose-600">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Clean Centered Input & Control Card -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-5 sm:p-7 space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h2 id="modeHeading" class="font-display text-lg sm:text-xl font-bold text-slate-900">Booth's Multiplication Algorithm</h2>
+                    <p id="modeDesc" class="text-xs sm:text-sm text-slate-500 mt-0.5">Signed 2's complement multiplication inspecting Q₀Q₋₁ bit pairs and performing Arithmetic Right Shifts (ASHR).</p>
+                </div>
+
+                <!-- Configuration Controls -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div id="signedSubModeWrap" class="hidden">
+                        <select id="signedSubMode" onchange="onSignedSubModeChange()" class="px-3 py-2 text-xs font-semibold rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="signmag">Sign-Magnitude (S_M ⊕ S_Q)</option>
+                            <option value="twoscomp">Signed 2's Complement (Shift-Add)</option>
+                        </select>
+                    </div>
+
+                    <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                        <button id="baseDecBtn" onclick="setInputBase('dec')" class="px-3 py-1 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition">Decimal</button>
+                        <button id="baseBinBtn" onclick="setInputBase('bin')" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">Binary</button>
+                    </div>
+
+                    <select id="bitWidthSelect" onchange="updateLivePreviews()" class="px-3 py-2 text-xs font-bold rounded-xl bg-slate-100 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="auto">Auto Bit-Width</option>
+                        <option value="4" selected>4-Bit</option>
+                        <option value="5">5-Bit</option>
+                        <option value="6">6-Bit</option>
+                        <option value="8">8-Bit</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2-Column Operand Form -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Multiplicand (M) -->
+                <div class="rounded-xl bg-slate-50/80 border border-slate-200/80 p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label for="inputM" class="text-xs font-bold uppercase tracking-wider text-slate-600">Multiplicand (M)</label>
+                        <span id="rangeHintM" class="text-[11px] font-mono text-slate-400">Range: -8 to +7</span>
+                    </div>
+                    <input type="text" id="inputM" value="-7" oninput="updateLivePreviews()" placeholder="e.g. -7"
+                        class="w-full px-4 py-2.5 rounded-xl font-mono text-base font-bold bg-white border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-mono text-indigo-700">
+                            <span class="text-indigo-400">M:</span>
+                            <strong id="previewM">1001</strong>
+                        </span>
+                        <span id="previewNegMBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-100 text-xs font-mono text-rose-700">
+                            <span class="text-rose-400">-M:</span>
+                            <strong id="previewNegM">0111</strong>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Multiplier (Q) -->
+                <div class="rounded-xl bg-slate-50/80 border border-slate-200/80 p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label for="inputQ" class="text-xs font-bold uppercase tracking-wider text-slate-600">Multiplier (Q)</label>
+                        <span id="rangeHintQ" class="text-[11px] font-mono text-slate-400">Range: -8 to +7</span>
+                    </div>
+                    <input type="text" id="inputQ" value="3" oninput="updateLivePreviews()" placeholder="e.g. 3"
+                        class="w-full px-4 py-2.5 rounded-xl font-mono text-base font-bold bg-white border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-xs font-mono text-emerald-700">
+                            <span class="text-emerald-500">Q:</span>
+                            <strong id="previewQ">0011</strong>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-xs font-mono text-slate-600">
+                            <span class="text-slate-400">Width:</span>
+                            <strong id="previewWidth">4-bit</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Primary CTA & Quick Presets Row -->
+            <div class="flex flex-wrap items-center justify-between gap-4 pt-1">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button onclick="runFullSimulation()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-md shadow-indigo-600/20 transition active:scale-[0.99]">
+                        <i data-lucide="calculator" class="w-4 h-4"></i>
+                        <span>Calculate & Visualize</span>
+                    </button>
+
+                    <!-- Playback Toolbar -->
+                    <div class="inline-flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200">
+                        <button onclick="prevStep()" title="Previous Step" class="p-2 rounded-lg text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <button id="playPauseBtn" onclick="toggleAutoPlay()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition">
+                            <i id="playPauseIcon" data-lucide="play" class="w-3.5 h-3.5"></i>
+                            <span id="playPauseLabel">Auto Play</span>
+                        </button>
+                        <button onclick="nextStep()" title="Next Step" class="p-2 rounded-lg text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <button onclick="resetSimulation()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold transition">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Reset</span>
+                    </button>
+                </div>
+
+                <!-- Quick Presets -->
+                <div id="presetButtons" class="flex flex-wrap items-center gap-1.5">
+                    <!-- Populated dynamically per algorithm -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Visualization Workspace: Execution Table + Live Interactive SVG Flowchart -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- Left / Main Column (7 cols): Execution Trace Table & Final Answer Card -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- Step-by-Step Execution Card -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-200/90 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                <i data-lucide="table-2" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-display font-bold text-sm sm:text-base text-slate-900">Step-by-Step Execution Table</h3>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="hidden sm:inline text-xs text-slate-400">Click row to inspect</span>
+                            <span id="stepBadge" class="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-mono text-xs font-bold">
+                                Step 0 / 0
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="traceContainer" class="p-4 sm:p-5 overflow-x-auto">
+                        <!-- Dynamic Table / Array Matrix Rendered Here -->
+                    </div>
+                </section>
+
+                <!-- Final Answer Summary Card (#ans style) -->
+                <section id="ans" class="hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 text-white p-5 sm:p-6 shadow-lg shadow-emerald-600/15 border border-emerald-500/30">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/15">
+                        <div class="space-y-1">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-[11px] font-bold uppercase tracking-wider">
+                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                                <span>Final Multiplication Answer</span>
+                            </div>
+                            <h3 id="ansEquation" class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight mt-1">
+                                -7 × 3 = -21
+                            </h3>
+                        </div>
+                        <div class="sm:text-right">
+                            <div class="text-xs text-emerald-100 font-medium">Hexadecimal</div>
+                            <div id="ansHex" class="font-mono text-xl font-bold tracking-wider">0xEB</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+                        <div class="rounded-xl bg-black/15 backdrop-blur-sm p-3 border border-white/10">
+                            <div class="text-[11px] uppercase tracking-wider text-emerald-100 font-semibold">Multiplicand (M)</div>
+                            <div id="ansBinM" class="font-mono text-sm sm:text-base font-bold mt-0.5">1001 (-7)</div>
+                        </div>
+                        <div class="rounded-xl bg-black/15 backdrop-blur-sm p-3 border border-white/10">
+                            <div class="text-[11px] uppercase tracking-wider text-emerald-100 font-semibold">Multiplier (Q)</div>
+                            <div id="ansBinQ" class="font-mono text-sm sm:text-base font-bold mt-0.5">0011 (3)</div>
+                        </div>
+                        <div class="rounded-xl bg-white/15 backdrop-blur-sm p-3 border border-white/25">
+                            <div class="text-[11px] uppercase tracking-wider text-white font-semibold">Final Product (Binary)</div>
+                            <div id="ansBinProd" class="font-mono text-sm sm:text-base font-extrabold mt-0.5 tracking-wider">1110 1011</div>
+                        </div>
+                    </div>
+                    <p id="ansSummaryNote" class="text-xs text-emerald-100 mt-3 leading-relaxed"></p>
+                </section>
+
+            </div>
+
+            <!-- Right Column (5 cols): Interactive SVG Algorithm Flowchart -->
+            <aside class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200/90 overflow-hidden lg:sticky lg:top-6">
+                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/60">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                            <i data-lucide="workflow" class="w-4 h-4"></i>
+                        </div>
+                        <h3 id="flowchartHeading" class="font-display font-bold text-sm sm:text-base text-slate-900">Algorithm Flowchart</h3>
+                    </div>
+                    <span id="flowActivePill" class="px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-mono text-[11px] font-bold">
+                        Idle
+                    </span>
+                </div>
+
+                <div class="p-4 sm:p-5 bg-slate-50/40 flex flex-col items-center">
+                    <div id="svgFlowchartContainer" class="w-full flex justify-center overflow-x-auto">
+                        <!-- Crisp Interactive SVG Flowchart Injected Here -->
+                    </div>
+                    <div id="flowCaption" class="mt-3 w-full rounded-xl bg-white border border-slate-200/80 p-3 text-xs text-slate-600 text-center">
+                        Step through the simulation to watch the active control unit state highlight live on the flowchart.
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+
+        <!-- Clean Educational Reference Cards (Rules & Hardware Formulas) -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-2.5">
+                <div class="flex items-center gap-2 text-indigo-600 font-display font-bold text-sm">
+                    <i data-lucide="git-commit-horizontal" class="w-4 h-4"></i>
+                    <h4>Booth's Recoding Rules</h4>
+                </div>
+                <ul class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                    <li><span class="font-mono font-bold text-slate-800">00 / 11:</span> No arithmetic operation; perform Arithmetic Right Shift (ASHR).</li>
+                    <li><span class="font-mono font-bold text-emerald-700">01:</span> End of a string of 1s → <code class="bg-slate-100 px-1 rounded">AC ← AC + M</code>, then ASHR.</li>
+                    <li><span class="font-mono font-bold text-rose-700">10:</span> Start of a string of 1s → <code class="bg-slate-100 px-1 rounded">AC ← AC - M</code>, then ASHR.</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-2.5">
+                <div class="flex items-center gap-2 text-emerald-600 font-display font-bold text-sm">
+                    <i data-lucide="grid" class="w-4 h-4"></i>
+                    <h4>Array Multiplier Architecture</h4>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    An <span class="font-mono font-semibold text-slate-800">N × N</span> combinational array uses <span class="font-mono font-semibold text-slate-800">N²</span> AND gates to compute all partial product bits <code class="bg-slate-100 px-1 rounded">PP[j,i] = Mᵢ · Qⱼ</code> simultaneously, summing shifted rows through Half and Full Adders.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-2.5">
+                <div class="flex items-center gap-2 text-blue-600 font-display font-bold text-sm">
+                    <i data-lucide="binary" class="w-4 h-4"></i>
+                    <h4>Signed Bit Multiplication</h4>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    <strong>Sign-Magnitude</strong> computes the output sign via <code class="bg-slate-100 px-1 rounded">S_out = S_M ⊕ S_Q</code> and multiplies <code class="bg-slate-100 px-1 rounded">(N-1)</code>-bit magnitudes. <strong>Signed 2's Complement</strong> sign-extends partial products to <code class="bg-slate-100 px-1 rounded">2N</code> bits and subtracts the MSB term (<code class="bg-slate-100 px-1 rounded">-2ⁿ⁻¹</code>).
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Minimal Clean Footer -->
+    <footer class="border-t border-slate-200 bg-white py-5 text-center text-xs text-slate-500">
+        Binary Multiplication Visualizer &bull; Computer Organization & Architecture Simulator
+    </footer>
+
+    <script>
+        // =========================================================================
+        // APPLICATION STATE & PRESETS
+        // =========================================================================
+        const state = {
+            mode: 'booth',          // 'booth' | 'array' | 'signed'
+            inputBase: 'dec',       // 'dec' | 'bin'
+            steps: [],
+            currentStep: -1,
+            meta: null,
+            playTimer: null
+        };
+
+        const MODE_PRESETS = {
+            booth: [
+                { label: '-7 × 3', m: '-7', q: '3', width: '4' },
+                { label: '6 × -5', m: '6', q: '-5', width: '4' },
+                { label: '-4 × -6', m: '-4', q: '-6', width: '4' },
+                { label: '11 × -13', m: '11', q: '-13', width: '5' }
+            ],
+            array: [
+                { label: '11 × 13', m: '11', q: '13', width: '4' },
+                { label: '15 × 15', m: '15', q: '15', width: '4' },
+                { label: '9 × 6', m: '9', q: '6', width: '4' },
+                { label: '25 × 19', m: '25', q: '19', width: '5' }
+            ],
+            signed: [
+                { label: '-7 × 3', m: '-7', q: '3', width: '4' },
+                { label: '6 × -5', m: '6', q: '-5', width: '4' },
+                { label: '-4 × -6', m: '-4', q: '-6', width: '4' },
+                { label: '-12 × 9', m: '-12', q: '9', width: '5' }
+            ]
+        };
+
+        // =========================================================================
+        // INITIALIZATION
+        // =========================================================================
+        window.onload = () => {
+            lucide.createIcons();
+            renderPresetChips();
+            updateModeHeader();
+            updateLivePreviews();
+            runFullSimulation();
+        };
+
+        function showAlert(htmlMsg) {
+            const box = document.getElementById('alertBox');
+            document.getElementById('alertMessage').innerHTML = htmlMsg;
+            box.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            document.getElementById('alertBox').classList.add('hidden');
+        }
+
+        // =========================================================================
+        // MODE, BASE & PRESET CONTROLS
+        // =========================================================================
+        function switchMode(newMode) {
+            stopAutoPlay();
+            state.mode = newMode;
+
+            // Update tab styles
+            document.querySelectorAll('.mode-tab').forEach(tab => {
+                tab.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                tab.classList.add('text-slate-600', 'hover:bg-slate-100', 'hover:text-slate-900');
+            });
+            const active = document.getElementById(`tab-${newMode}`);
+            active.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+            active.classList.remove('text-slate-600', 'hover:bg-slate-100', 'hover:text-slate-900');
+
+            // Apply first preset for clean switch
+            const first = MODE_PRESETS[newMode][0];
+            if (state.inputBase === 'dec') {
+                document.getElementById('inputM').value = first.m;
+                document.getElementById('inputQ').value = first.q;
+            } else {
+                const w = parseInt(first.width, 10);
+                document.getElementById('inputM').value = newMode === 'array'
+                    ? toUnsignedBin(parseInt(first.m, 10), w)
+                    : toTwosComplement(parseInt(first.m, 10), w);
+                document.getElementById('inputQ').value = newMode === 'array'
+                    ? toUnsignedBin(parseInt(first.q, 10), w)
+                    : toTwosComplement(parseInt(first.q, 10), w);
+            }
+            document.getElementById('bitWidthSelect').value = first.width;
+
+            renderPresetChips();
+            updateModeHeader();
+            updateLivePreviews();
+            runFullSimulation();
+        }
+
+        function updateModeHeader() {
+            const heading = document.getElementById('modeHeading');
+            const desc = document.getElementById('modeDesc');
+            const subWrap = document.getElementById('signedSubModeWrap');
+            const flowHeading = document.getElementById('flowchartHeading');
+
+            subWrap.classList.toggle('hidden', state.mode !== 'signed');
+
+            if (state.mode === 'booth') {
+                heading.textContent = "Booth's Multiplication Algorithm";
+                desc.textContent = "Signed 2's complement multiplication inspecting Q₀Q₋₁ bit pairs and performing Arithmetic Right Shifts (ASHR).";
+                flowHeading.textContent = "Booth's Control Flowchart";
+            } else if (state.mode === 'array') {
+                heading.textContent = "Combinational Array Multiplication";
+                desc.textContent = "Parallel N × N AND-gate partial product matrix summed through ripple-carry adder stages.";
+                flowHeading.textContent = "Array Multiplier Dataflow";
+            } else {
+                const sub = document.getElementById('signedSubMode').value;
+                heading.textContent = "Signed Bit Multiplication";
+                desc.textContent = sub === 'signmag'
+                    ? "Sign-Magnitude hardware method: XORs sign bits (S_M ⊕ S_Q) and multiplies (N-1)-bit unsigned magnitudes."
+                    : "Signed 2's Complement shift-and-add with 2N-bit sign extension and subtractive MSB weight (-2ⁿ⁻¹).";
+                flowHeading.textContent = sub === 'signmag' ? "Sign-Magnitude Flowchart" : "2's Complement Flowchart";
+            }
+        }
+
+        function onSignedSubModeChange() {
+            stopAutoPlay();
+            updateModeHeader();
+            updateLivePreviews();
+            runFullSimulation();
+        }
+
+        function renderPresetChips() {
+            const container = document.getElementById('presetButtons');
+            const presets = MODE_PRESETS[state.mode];
+            container.innerHTML = `<span class="text-xs font-semibold text-slate-400 mr-1">Examples:</span>` +
+                presets.map((p, i) => `
+                    <button onclick="applyPreset(${i})" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200 text-xs font-mono font-semibold text-slate-700 transition">
+                        ${p.label}
+                    </button>
+                `).join('');
+        }
+
+        function applyPreset(idx) {
+            stopAutoPlay();
+            const p = MODE_PRESETS[state.mode][idx];
+            const w = parseInt(p.width, 10);
+            document.getElementById('bitWidthSelect').value = p.width;
+
+            if (state.inputBase === 'dec') {
+                document.getElementById('inputM').value = p.m;
+                document.getElementById('inputQ').value = p.q;
+            } else {
+                const isSignMag = state.mode === 'signed' && document.getElementById('signedSubMode').value === 'signmag';
+                if (state.mode === 'array') {
+                    document.getElementById('inputM').value = toUnsignedBin(parseInt(p.m, 10), w);
+                    document.getElementById('inputQ').value = toUnsignedBin(parseInt(p.q, 10), w);
+                } else if (isSignMag) {
+                    document.getElementById('inputM').value = toSignMagnitudeBin(parseInt(p.m, 10), w);
+                    document.getElementById('inputQ').value = toSignMagnitudeBin(parseInt(p.q, 10), w);
+                } else {
+                    document.getElementById('inputM').value = toTwosComplement(parseInt(p.m, 10), w);
+                    document.getElementById('inputQ').value = toTwosComplement(parseInt(p.q, 10), w);
+                }
+            }
+            updateLivePreviews();
+            runFullSimulation();
+        }
+
+        function setInputBase(newBase) {
+            if (state.inputBase === newBase) return;
+            const parsed = parseInputs();
+            state.inputBase = newBase;
+
+            const decBtn = document.getElementById('baseDecBtn');
+            const binBtn = document.getElementById('baseBinBtn');
+
+            if (newBase === 'dec') {
+                decBtn.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+                decBtn.classList.remove('text-slate-600');
+                binBtn.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+                binBtn.classList.add('text-slate-600');
+
+                if (!parsed.error) {
+                    document.getElementById('inputM').value = parsed.valM;
+                    document.getElementById('inputQ').value = parsed.valQ;
+                }
+            } else {
+                binBtn.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+                binBtn.classList.remove('text-slate-600');
+                decBtn.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+                decBtn.classList.add('text-slate-600');
+
+                if (!parsed.error) {
+                    document.getElementById('inputM').value = parsed.binM;
+                    document.getElementById('inputQ').value = parsed.binQ;
+                }
+            }
+            updateLivePreviews();
+        }
+
+        // =========================================================================
+        // BINARY CONVERSION & VALIDATION HELPERS
+        // =========================================================================
+        function toTwosComplement(num, bits) {
+            const mask = (1 << bits) - 1;
+            return (num & mask).toString(2).padStart(bits, '0');
+        }
+
+        function fromTwosComplement(binStr) {
+            const bits = binStr.length;
+            const val = parseInt(binStr, 2);
+            return binStr[0] === '1' ? val - (1 << bits) : val;
+        }
+
+        function toUnsignedBin(num, bits) {
+            return (num >>> 0).toString(2).padStart(bits, '0').slice(-bits);
+        }
+
+        function toSignMagnitudeBin(num, bits) {
+            const sign = num < 0 ? '1' : '0';
+            const mag = Math.abs(num).toString(2).padStart(bits - 1, '0');
+            return sign + mag;
+        }
+
+        function addBinaryStrings(a, b) {
+            let carry = 0;
+            let res = '';
+            for (let i = a.length - 1; i >= 0; i--) {
+                const sum = parseInt(a[i], 10) + parseInt(b[i], 10) + carry;
+                res = (sum % 2) + res;
+                carry = Math.floor(sum / 2);
+            }
+            return { result: res, carry };
+        }
+
+        function parseInputs() {
+            hideAlert();
+            const rawM = document.getElementById('inputM').value.trim();
+            const rawQ = document.getElementById('inputQ').value.trim();
+            const widthSel = document.getElementById('bitWidthSelect').value;
+            const isUnsigned = state.mode === 'array';
+            const isSignMag = state.mode === 'signed' && document.getElementById('signedSubMode').value === 'signmag';
+
+            if (!rawM || !rawQ) {
+                return { error: "Please enter both Multiplicand (M) and Multiplier (Q)." };
+            }
+
+            let valM, valQ, minBits = 4;
+
+            if (state.inputBase === 'dec') {
+                if (!/^-?\d+$/.test(rawM) || !/^-?\d+$/.test(rawQ)) {
+                    return { error: "Please enter valid integer values for M and Q (e.g. -7, 3)." };
+                }
+                valM = parseInt(rawM, 10);
+                valQ = parseInt(rawQ, 10);
+
+                if (isUnsigned && (valM < 0 || valQ < 0)) {
+                    return { error: "<strong>Array Multiplication</strong> requires non-negative unsigned integers (≥ 0). Switch to Booth's or Signed Bit mode for negative numbers." };
+                }
+
+                for (let b = 4; b <= 8; b++) {
+                    if (isUnsigned) {
+                        if (valM <= (1 << b) - 1 && valQ <= (1 << b) - 1) { minBits = b; break; }
+                    } else if (isSignMag) {
+                        const maxMag = (1 << (b - 1)) - 1;
+                        if (Math.abs(valM) <= maxMag && Math.abs(valQ) <= maxMag) { minBits = b; break; }
+                    } else {
+                        const minS = -(1 << (b - 1));
+                        const maxS = (1 << (b - 1)) - 1;
+                        if (valM >= minS && valM <= maxS && valQ >= minS && valQ <= maxS) { minBits = b; break; }
+                    }
+                    if (b === 8) minBits = 9;
+                }
+            } else {
+                if (!/^[01]+$/.test(rawM) || !/^[01]+$/.test(rawQ)) {
+                    return { error: "Binary mode only accepts 0s and 1s (e.g., 1001)." };
+                }
+                if (rawM.length > 8 || rawQ.length > 8) {
+                    return { error: "Maximum supported bit-width is 8 bits." };
+                }
+                minBits = Math.max(4, rawM.length, rawQ.length);
+            }
+
+            const bits = widthSel === 'auto' ? minBits : parseInt(widthSel, 10);
+
+            if (bits > 8 || minBits > bits) {
+                const rangeStr = isUnsigned
+                    ? `0 to ${(1 << bits) - 1}`
+                    : isSignMag
+                        ? `-${(1 << (bits - 1)) - 1} to +${(1 << (bits - 1)) - 1}`
+                        : `-${1 << (bits - 1)} to +${(1 << (bits - 1)) - 1}`;
+                return { error: `Operand exceeds ${bits}-bit capacity (Allowed range: <strong>${rangeStr}</strong>). Select a wider bit-width or Auto.` };
+            }
+
+            let binM, binQ;
+            if (state.inputBase === 'bin') {
+                const padM = (!isUnsigned && rawM.length === bits) ? rawM[0] : '0';
+                const padQ = (!isUnsigned && rawQ.length === bits) ? rawQ[0] : '0';
+                binM = rawM.padStart(bits, padM);
+                binQ = rawQ.padStart(bits, padQ);
+
+                if (isUnsigned) {
+                    valM = parseInt(binM, 2);
+                    valQ = parseInt(binQ, 2);
+                } else if (isSignMag) {
+                    valM = (binM[0] === '1' ? -1 : 1) * parseInt(binM.slice(1), 2);
+                    valQ = (binQ[0] === '1' ? -1 : 1) * parseInt(binQ.slice(1), 2);
+                } else {
+                    valM = fromTwosComplement(binM);
+                    valQ = fromTwosComplement(binQ);
+                }
+            } else {
+                if (isUnsigned) {
+                    binM = toUnsignedBin(valM, bits);
+                    binQ = toUnsignedBin(valQ, bits);
+                } else if (isSignMag) {
+                    binM = toSignMagnitudeBin(valM, bits);
+                    binQ = toSignMagnitudeBin(valQ, bits);
+                } else {
+                    binM = toTwosComplement(valM, bits);
+                    binQ = toTwosComplement(valQ, bits);
+                }
+            }
+
+            const negBinM = isUnsigned ? 'N/A' : toTwosComplement(-valM, bits);
+            return { valM, valQ, binM, binQ, negBinM, bits, isUnsigned, isSignMag };
+        }
+
+        function updateLivePreviews() {
+            const parsed = parseInputs();
+            const widthSel = document.getElementById('bitWidthSelect').value;
+            const dBits = widthSel === 'auto' ? (parsed.bits || 4) : parseInt(widthSel, 10);
+
+            if (state.mode === 'array') {
+                const maxU = (1 << dBits) - 1;
+                document.getElementById('rangeHintM').textContent = `Unsigned: 0 to ${maxU}`;
+                document.getElementById('rangeHintQ').textContent = `Unsigned: 0 to ${maxU}`;
+                document.getElementById('previewNegMBadge').classList.add('hidden');
+            } else {
+                const minS = -(1 << (dBits - 1));
+                const maxS = (1 << (dBits - 1)) - 1;
+                document.getElementById('rangeHintM').textContent = `Signed: ${minS} to +${maxS}`;
+                document.getElementById('rangeHintQ').textContent = `Signed: ${minS} to +${maxS}`;
+                document.getElementById('previewNegMBadge').classList.remove('hidden');
+            }
+
+            if (parsed.error) {
+                document.getElementById('previewM').textContent = '---';
+                document.getElementById('previewQ').textContent = '---';
+                document.getElementById('previewNegM').textContent = '---';
+                document.getElementById('previewWidth').textContent = `${dBits}-bit`;
+                return;
+            }
+
+            document.getElementById('previewM').textContent = `${parsed.binM} (${parsed.valM})`;
+            document.getElementById('previewQ').textContent = `${parsed.binQ} (${parsed.valQ})`;
+            document.getElementById('previewNegM').textContent = parsed.negBinM;
+            document.getElementById('previewWidth').textContent = `${parsed.bits}-bit`;
+        }
+
+        // =========================================================================
+        // STEP GENERATORS FOR ALL 3 ALGORITHMS
+        // =========================================================================
+        function buildBoothSteps(data) {
+            const { valM, valQ, binM, binQ, negBinM, bits } = data;
+            const steps = [];
+            let ac = '0'.repeat(bits);
+            let q = binQ;
+            let qMinus1 = '0';
+
+            steps.push({
+                cycle: 0,
+                sc: bits,
+                ac,
+                q,
+                qMinus1,
+                pair: `${q[bits - 1]}${qMinus1}`,
+                actionType: 'init',
+                flowNode: 'init',
+                actionLabel: 'Initialize Registers',
+                note: `AC ← ${ac}, Q ← ${q} (${valQ}), Q₋₁ ← 0, SC ← ${bits}`
+            });
+
+            for (let i = 1; i <= bits; i++) {
+                const scRemaining = bits - i + 1;
+                const q0 = q[bits - 1];
+                const pair = q0 + qMinus1;
+
+                if (pair === '10') {
+                    ac = addBinaryStrings(ac, negBinM).result;
+                    steps.push({
+                        cycle: i,
+                        sc: scRemaining,
+                        ac,
+                        q,
+                        qMinus1,
+                        pair,
+                        actionType: 'sub',
+                        flowNode: 'sub',
+                        actionLabel: 'AC ← AC - M',
+                        note: `Q₀Q₋₁ = 10 → Subtract M (Add 2's comp -M = ${negBinM})`
+                    });
+                } else if (pair === '01') {
+                    ac = addBinaryStrings(ac, binM).result;
+                    steps.push({
+                        cycle: i,
+                        sc: scRemaining,
+                        ac,
+                        q,
+                        qMinus1,
+                        pair,
+                        actionType: 'add',
+                        flowNode: 'add',
+                        actionLabel: 'AC ← AC + M',
+                        note: `Q₀Q₋₁ = 01 → Add Multiplicand M (${binM})`
+                    });
+                }
+
+                // Arithmetic Right Shift (ASHR)
+                const msbAC = ac[0];
+                const lsbAC = ac[bits - 1];
+                const lsbQ = q[bits - 1];
+
+                ac = msbAC + ac.slice(0, bits - 1);
+                q = lsbAC + q.slice(0, bits - 1);
+                qMinus1 = lsbQ;
+
+                const nextSC = bits - i;
+                steps.push({
+                    cycle: i,
+                    sc: nextSC,
+                    ac,
+                    q,
+                    qMinus1,
+                    pair: `${q[bits - 1]}${qMinus1}`,
+                    prevPair: pair,
+                    actionType: 'shift',
+                    flowNode: nextSC === 0 ? 'done' : 'shift',
+                    actionLabel: 'ASHR [AC, Q, Q₋₁]',
+                    note: (pair === '00' || pair === '11')
+                        ? `Q₀Q₋₁ = ${pair} → Skip add/sub; Arithmetic Right Shift (SC → ${nextSC})`
+                        : `Arithmetic Right Shift preserving sign bit ${msbAC} (SC → ${nextSC})`
+                });
+            }
+
+            const finalBin = ac + q;
+            const finalDec = valM * valQ;
+            return {
+                steps,
+                finalBin,
+                finalDec,
+                hex: parseInt(finalBin, 2).toString(16).toUpperCase().padStart(Math.ceil(bits / 2), '0'),
+                summaryNote: `Concatenated ${bits * 2}-bit 2's complement product formed in registers [AC | Q] after ${bits} Booth cycles.`
+            };
+        }
+
+        function buildArraySteps(data) {
+            const { valM, valQ, binM, binQ, bits } = data;
+            const totalCols = bits * 2;
+            const steps = [];
+
+            const ppRows = [];
+            for (let j = 0; j < bits; j++) {
+                const qBit = parseInt(binQ[bits - 1 - j], 10);
+                const rowBits = Array(totalCols).fill(null);
+
+                for (let i = 0; i < bits; i++) {
+                    const mBit = parseInt(binM[bits - 1 - i], 10);
+                    const colIdx = totalCols - 1 - (i + j);
+                    rowBits[colIdx] = {
+                        val: mBit & qBit,
+                        mIndex: i,
+                        qIndex: j,
+                        mVal: mBit,
+                        qVal: qBit
+                    };
+                }
+                ppRows.push({ qIndex: j, qVal: qBit, rowBits });
+            }
+
+            steps.push({
+                flowNode: 'and_grid',
+                title: `Step 1: Generate ${bits}×${bits} AND-Gate Partial Products`,
+                desc: `All ${bits * bits} partial product bits PP[j,i] = Mᵢ ∧ Qⱼ are generated in parallel and shifted left by j columns.`,
+                ppRows,
+                activeRow: -1,
+                accumulatedSum: null
+            });
+
+            let runningSum = Array(totalCols).fill(0);
+            for (let j = 0; j < bits; j++) {
+                const nextSum = Array(totalCols).fill(0);
+                const carries = Array(totalCols).fill(0);
+                let carry = 0;
+
+                for (let c = totalCols - 1; c >= 0; c--) {
+                    const ppVal = ppRows[j].rowBits[c] ? ppRows[j].rowBits[c].val : 0;
+                    const s = runningSum[c] + ppVal + carry;
+                    nextSum[c] = s % 2;
+                    carry = Math.floor(s / 2);
+                    if (c > 0) carries[c - 1] = carry;
+                }
+
+                steps.push({
+                    flowNode: j === bits - 1 ? 'output' : 'adder_stage',
+                    title: `Step ${j + 2}: Sum Partial Product Row ${j} (Q_${j} = ${ppRows[j].qVal})`,
+                    desc: ppRows[j].qVal === 1
+                        ? `Q_${j} = 1 → Add shifted multiplicand (M << ${j}) through ripple-carry adder stage.`
+                        : `Q_${j} = 0 → Row ${j} contributes 0s; partial sum propagates forward.`,
+                    ppRows,
+                    activeRow: j,
+                    carries,
+                    accumulatedSum: [...nextSum]
+                });
+                runningSum = nextSum;
+            }
+
+            const finalBin = runningSum.join('');
+            const finalDec = valM * valQ;
+            return {
+                steps,
+                finalBin,
+                finalDec,
+                hex: parseInt(finalBin, 2).toString(16).toUpperCase().padStart(Math.ceil(bits / 2), '0'),
+                summaryNote: `Combinational ${bits}×${bits} array multiplier output computed using ${bits * bits} AND gates and ${bits - 1} adder rows.`
+            };
+        }
+
+        function buildSignedSteps(data) {
+            const sub = document.getElementById('signedSubMode').value;
+            return sub === 'signmag' ? buildSignMagSteps(data) : buildTwosCompSignedSteps(data);
+        }
+
+        function buildSignMagSteps(data) {
+            const { valM, valQ, binM, binQ, bits } = data;
+            const signM = parseInt(binM[0], 10);
+            const signQ = parseInt(binQ[0], 10);
+            const signOut = signM ^ signQ;
+
+            const magBits = bits - 1;
+            const magM = binM.slice(1);
+            const magQ = binQ.slice(1);
+            const prodMagWidth = magBits * 2;
+            const steps = [];
+
+            let acc = '0'.repeat(prodMagWidth);
+            let qShift = magQ;
+
+            steps.push({
+                subMode: 'signmag',
+                stepNum: 0,
+                flowNode: 'xor_sign',
+                actionType: 'init',
+                actionLabel: 'XOR Signs & Extract |M|, |Q|',
+                note: `S_out = S_M(${signM}) ⊕ S_Q(${signQ}) = ${signOut} (${signOut ? 'Negative' : 'Positive'}). Magnitudes: |M|=${magM}, |Q|=${magQ}`,
+                signOut,
+                accBin: acc,
+                qBin: qShift
+            });
+
+            for (let i = 0; i < magBits; i++) {
+                const lsb = qShift[magBits - 1];
+                const alignedM = (magM.padStart(prodMagWidth, '0').slice(i) + '0'.repeat(i)).slice(-prodMagWidth);
+                let actionType = 'shift';
+                let actionLabel = '';
+                let note = '';
+
+                if (lsb === '1') {
+                    acc = addBinaryStrings(acc, alignedM).result;
+                    actionType = 'add';
+                    actionLabel = `Q_${i}=1 → ACC + (|M|<<${i})`;
+                    note = `LSB of |Q| is 1 → Added ${alignedM} to magnitude accumulator`;
+                } else {
+                    actionType = 'shift';
+                    actionLabel = `Q_${i}=0 → Shift |Q|`;
+                    note = `LSB of |Q| is 0 → No addition; shift |Q| right`;
+                }
+                qShift = '0' + qShift.slice(0, magBits - 1);
+
+                steps.push({
+                    subMode: 'signmag',
+                    stepNum: i + 1,
+                    flowNode: i === magBits - 1 ? 'combine' : (lsb === '1' ? 'add_mag' : 'shift_mag'),
+                    actionType,
+                    actionLabel,
+                    note,
+                    signOut,
+                    accBin: acc,
+                    qBin: qShift
+                });
+            }
+
+            const finalDec = valM * valQ;
+            return {
+                steps,
+                finalBin: `${signOut} | ${acc}`,
+                finalDec,
+                hex: Math.abs(finalDec).toString(16).toUpperCase().padStart(2, '0'),
+                summaryNote: `Sign-Magnitude Result: Sign bit S_out = ${signOut} combined with ${prodMagWidth}-bit unsigned magnitude product (${acc}).`
+            };
+        }
+
+        function buildTwosCompSignedSteps(data) {
+            const { valM, valQ, binM, binQ, negBinM, bits } = data;
+            const totalWidth = bits * 2;
+            const extM = binM.padStart(totalWidth, binM[0]);
+            const extNegM = negBinM.padStart(totalWidth, negBinM[0]);
+            let acc = '0'.repeat(totalWidth);
+            const steps = [];
+
+            steps.push({
+                subMode: 'twoscomp',
+                stepNum: 0,
+                flowNode: 'sign_ext',
+                actionType: 'init',
+                actionLabel: 'Sign-Extend M to 2N Bits',
+                note: `M_ext = ${extM} (${valM}), -M_ext = ${extNegM} (${-valM}), AC = ${acc}`,
+                qBit: '-',
+                weight: '-',
+                accBin: acc
+            });
+
+            for (let j = 0; j < bits; j++) {
+                const qBit = binQ[bits - 1 - j];
+                const isMSB = j === bits - 1;
+                const shiftedM = (extM + '0'.repeat(j)).slice(-totalWidth);
+                const shiftedNegM = (extNegM + '0'.repeat(j)).slice(-totalWidth);
+
+                let actionType = 'shift';
+                let actionLabel = '';
+                let note = '';
+                let flowNode = isMSB ? 'done' : 'shift_next';
+
+                if (qBit === '0') {
+                    actionType = 'shift';
+                    actionLabel = isMSB ? `MSB Q_${j}=0 → Keep AC` : `Q_${j}=0 → Add 0`;
+                    note = `Multiplier bit Q_${j} is 0; accumulator unchanged`;
+                } else if (!isMSB) {
+                    acc = addBinaryStrings(acc, shiftedM).result;
+                    actionType = 'add';
+                    actionLabel = `AC ← AC + (M_ext << ${j})`;
+                    note = `Q_${j} = 1 (weight +2^${j}) → Added ${shiftedM}`;
+                    flowNode = 'add_ext';
+                } else {
+                    acc = addBinaryStrings(acc, shiftedNegM).result;
+                    actionType = 'sub';
+                    actionLabel = `AC ← AC - (M_ext << ${j})`;
+                    note = `Sign bit MSB Q_${j} = 1 (weight -2^${j}) → Subtracted M_ext << ${j}`;
+                    flowNode = 'sub_msb';
+                }
+
+                steps.push({
+                    subMode: 'twoscomp',
+                    stepNum: j + 1,
+                    flowNode,
+                    actionType,
+                    actionLabel,
+                    note,
+                    qBit,
+                    weight: isMSB ? `-2^${j}` : `+2^${j}`,
+                    accBin: acc
+                });
+            }
+
+            const finalDec = valM * valQ;
+            return {
+                steps,
+                finalBin: acc,
+                finalDec,
+                hex: parseInt(acc, 2).toString(16).toUpperCase().padStart(Math.ceil(bits / 2), '0'),
+                summaryNote: `Signed 2's Complement ${totalWidth}-bit product computed via sign-extension and negative MSB weight correction.`
+            };
+        }
+
+        // =========================================================================
+        // PLAYBACK & SIMULATION ENGINE
+        // =========================================================================
+        function prepareSimulation() {
+            const parsed = parseInputs();
+            if (parsed.error) {
+                showAlert(parsed.error);
+                return false;
+            }
+
+            let out;
+            if (state.mode === 'booth') out = buildBoothSteps(parsed);
+            else if (state.mode === 'array') out = buildArraySteps(parsed);
+            else out = buildSignedSteps(parsed);
+
+            state.steps = out.steps;
+            state.meta = {
+                ...parsed,
+                finalBin: out.finalBin,
+                finalDec: out.finalDec,
+                hex: out.hex,
+                summaryNote: out.summaryNote
+            };
+            return true;
+        }
+
+        function runFullSimulation() {
+            stopAutoPlay();
+            if (!prepareSimulation()) return;
+            state.currentStep = state.steps.length - 1;
+            renderAll();
+        }
+
+        function nextStep() {
+            if (state.steps.length === 0 || state.currentStep === -1) {
+                if (!prepareSimulation()) return;
+                state.currentStep = 0;
+            } else if (state.currentStep < state.steps.length - 1) {
+                state.currentStep++;
+            } else {
+                stopAutoPlay();
+            }
+            renderAll();
+        }
+
+        function prevStep() {
+            stopAutoPlay();
+            if (state.currentStep > 0) {
+                state.currentStep--;
+                renderAll();
+            }
+        }
+
+        function jumpToStep(idx) {
+            stopAutoPlay();
+            if (idx >= 0 && idx < state.steps.length) {
+                state.currentStep = idx;
+                renderAll();
+            }
+        }
+
+        function toggleAutoPlay() {
+            if (state.playTimer) {
+                stopAutoPlay();
+                return;
+            }
+            if (state.steps.length === 0 || state.currentStep >= state.steps.length - 1) {
+                if (!prepareSimulation()) return;
+                state.currentStep = 0;
+                renderAll();
+            }
+            document.getElementById('playPauseIcon').setAttribute('data-lucide', 'pause');
+            document.getElementById('playPauseLabel').textContent = 'Pause';
+            lucide.createIcons();
+
+            state.playTimer = setInterval(() => {
+                if (state.currentStep < state.steps.length - 1) {
+                    state.currentStep++;
+                    renderAll();
+                } else {
+                    stopAutoPlay();
+                }
+            }, 950);
+        }
+
+        function stopAutoPlay() {
+            if (state.playTimer) {
+                clearInterval(state.playTimer);
+                state.playTimer = null;
+            }
+            const icon = document.getElementById('playPauseIcon');
+            const label = document.getElementById('playPauseLabel');
+            if (icon && label) {
+                icon.setAttribute('data-lucide', 'play');
+                label.textContent = 'Auto Play';
+                lucide.createIcons();
+            }
+        }
+
+        function resetSimulation() {
+            stopAutoPlay();
+            hideAlert();
+            state.steps = [];
+            state.currentStep = -1;
+            state.meta = null;
+            document.getElementById('ans').classList.add('hidden');
+            document.getElementById('stepBadge').textContent = 'Step 0 / 0';
+            document.getElementById('traceContainer').innerHTML = `
+                <div class="py-12 text-center space-y-2 text-slate-400">
+                    <i data-lucide="play-circle" class="w-10 h-10 mx-auto text-indigo-300"></i>
+                    <p class="text-sm font-medium text-slate-500">Press <strong>Calculate & Visualize</strong> or <strong>Auto Play</strong> to begin.</p>
+                </div>
+            `;
+            renderSvgFlowchart(null);
+            lucide.createIcons();
+        }
+
+        // =========================================================================
+        // RENDERING: EXECUTION TABLES, ARRAY MATRIX, ANSWER CARD & SVG FLOWCHART
+        // =========================================================================
+        function renderAll() {
+            const total = state.steps.length;
+            const current = state.currentStep + 1;
+            document.getElementById('stepBadge').textContent = `Step ${current} / ${total}`;
+
+            // Answer Card (#ans)
+            const ansCard = document.getElementById('ans');
+            if (state.currentStep === total - 1 && state.meta) {
+                ansCard.classList.remove('hidden');
+                document.getElementById('ansEquation').textContent = `${state.meta.valM} × ${state.meta.valQ} = ${state.meta.finalDec}`;
+                document.getElementById('ansHex').textContent = `0x${state.meta.hex}`;
+                document.getElementById('ansBinM').textContent = `${state.meta.binM} (${state.meta.valM})`;
+                document.getElementById('ansBinQ').textContent = `${state.meta.binQ} (${state.meta.valQ})`;
+                document.getElementById('ansBinProd').textContent = groupNibbles(state.meta.finalBin);
+                document.getElementById('ansSummaryNote').textContent = state.meta.summaryNote;
+            } else {
+                ansCard.classList.add('hidden');
+            }
+
+            const traceEl = document.getElementById('traceContainer');
+            if (state.mode === 'booth') renderBoothTrace(traceEl);
+            else if (state.mode === 'array') renderArrayTrace(traceEl);
+            else renderSignedTrace(traceEl);
+
+            renderSvgFlowchart(state.steps[state.currentStep] || null);
+            lucide.createIcons();
+        }
+
+        function groupNibbles(bin) {
+            if (bin.includes('|')) return bin;
+            return bin.replace(/(.{4})/g, '$1 ').trim();
+        }
+
+        function bitBoxes(binStr, highlightLast = false, highlightFirst = false) {
+            return binStr.split('').map((b, i) => {
+                let cls = 'bg-slate-50 text-slate-800 border-slate-200';
+                if (highlightLast && i === binStr.length - 1) {
+                    cls = 'bg-indigo-100 text-indigo-800 border-indigo-400 font-extrabold ring-1 ring-indigo-300';
+                } else if (highlightFirst && i === 0) {
+                    cls = 'bg-amber-50 text-amber-800 border-amber-300 font-bold';
+                }
+                return `<span class="bit-pill inline-flex items-center justify-center w-6 h-7 rounded-md border font-mono text-xs ${cls}">${b}</span>`;
+            }).join('');
+        }
+
+        function getActionBadgeClass(type) {
+            if (type === 'add') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            if (type === 'sub') return 'bg-rose-50 text-rose-700 border-rose-200';
+            if (type === 'shift') return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+            return 'bg-slate-100 text-slate-700 border-slate-200';
+        }
+
+        // 1. Booth's Table Renderer
+        function renderBoothTrace(container) {
+            const visible = state.steps.slice(0, state.currentStep + 1);
+            const rows = visible.map((s, idx) => {
+                const isCurrent = idx === visible.length - 1;
+                return `
+                    <tr onclick="jumpToStep(${idx})" class="cursor-pointer border-b border-slate-100 transition-colors ${isCurrent ? 'bg-indigo-50/70' : 'hover:bg-slate-50'}">
+                        <td class="py-3 px-3 font-mono text-xs font-bold text-slate-500 whitespace-nowrap">
+                            ${s.cycle === 0 ? 'Init' : `Cycle ${s.cycle}`}
+                        </td>
+                        <td class="py-3 px-3 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg border font-mono text-xs font-bold ${getActionBadgeClass(s.actionType)}">
+                                ${s.actionLabel}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3 whitespace-nowrap">
+                            <div class="inline-flex gap-1">${bitBoxes(s.ac, false, true)}</div>
+                        </td>
+                        <td class="py-3 px-3 whitespace-nowrap">
+                            <div class="inline-flex gap-1">${bitBoxes(s.q, true, false)}</div>
+                        </td>
+                        <td class="py-3 px-3 text-center whitespace-nowrap">
+                            <span class="inline-flex items-center justify-center w-6 h-7 rounded-md border border-indigo-300 bg-indigo-50 text-indigo-800 font-mono text-xs font-extrabold">${s.qMinus1}</span>
+                        </td>
+                        <td class="py-3 px-3 text-center font-mono text-xs font-bold text-slate-600">${s.sc}</td>
+                        <td class="py-3 px-3 text-xs text-slate-600 min-w-[200px]">${s.note}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b-2 border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-50/80">
+                            <th class="py-2.5 px-3">Step</th>
+                            <th class="py-2.5 px-3">Operation</th>
+                            <th class="py-2.5 px-3">AC</th>
+                            <th class="py-2.5 px-3">Q</th>
+                            <th class="py-2.5 px-3 text-center">Q₋₁</th>
+                            <th class="py-2.5 px-3 text-center">SC</th>
+                            <th class="py-2.5 px-3">Register Transfer Note</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+
+        // 2. Array Multiplication Matrix Renderer
+        function renderArrayTrace(container) {
+            const step = state.steps[state.currentStep];
+            const { binM, binQ, bits } = state.meta;
+            const totalCols = bits * 2;
+
+            let weightTh = '';
+            for (let c = 0; c < totalCols; c++) {
+                weightTh += `<th class="p-1.5 text-center font-mono text-[10px] text-slate-400">2<sup>${totalCols - 1 - c}</sup></th>`;
+            }
+
+            const padM = binM.padStart(totalCols, ' ');
+            const padQ = binQ.padStart(totalCols, ' ');
+
+            const mCells = padM.split('').map((ch, idx) => {
+                const mIdx = totalCols - 1 - idx;
+                return `<td id="arr-m-${mIdx}" class="p-1 text-center font-mono text-xs font-extrabold text-indigo-600 transition-transform">${ch === ' ' ? '' : ch}</td>`;
+            }).join('');
+
+            const qCells = padQ.split('').map((ch, idx) => {
+                const qIdx = totalCols - 1 - idx;
+                return `<td id="arr-q-${qIdx}" class="p-1 text-center font-mono text-xs font-extrabold text-emerald-600 transition-transform">${ch === ' ' ? '' : ch}</td>`;
+            }).join('');
+
+            const ppRowsHtml = step.ppRows.map((row, rIdx) => {
+                const isCur = step.activeRow === rIdx;
+                const isDone = step.activeRow >= rIdx;
+
+                const cells = row.rowBits.map(cell => {
+                    if (!cell) return `<td class="p-1 text-center font-mono text-xs text-slate-300">·</td>`;
+                    const style = isCur
+                        ? 'bg-amber-100 border-amber-400 text-amber-900 font-extrabold scale-105'
+                        : isDone
+                            ? 'bg-indigo-50/70 border-indigo-200 text-slate-800 font-semibold'
+                            : 'bg-slate-50 border-slate-200 text-slate-500';
+                    return `
+                        <td class="p-1 text-center">
+                            <span
+                                onmouseenter="highlightGate(${cell.mIndex}, ${cell.qIndex}, true)"
+                                onmouseleave="highlightGate(${cell.mIndex}, ${cell.qIndex}, false)"
+                                title="AND Gate: M_${cell.mIndex}(${cell.mVal}) ∧ Q_${cell.qIndex}(${cell.qVal}) = ${cell.val}"
+                                class="bit-pill cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-lg border font-mono text-xs ${style}">
+                                ${cell.val}
+                            </span>
+                        </td>
+                    `;
+                }).join('');
+
+                return `
+                    <tr class="${isCur ? 'bg-amber-50/60' : ''}">
+                        <td class="py-1.5 px-3 font-mono text-xs text-slate-600 whitespace-nowrap">
+                            PP<sub>${rIdx}</sub> (M · Q<sub>${rIdx}</sub>=${row.qVal})
+                        </td>
+                        ${cells}
+                    </tr>
+                `;
+            }).join('');
+
+            let sumHtml = '';
+            if (step.accumulatedSum) {
+                const carryRow = step.carries.map(c => `
+                    <td class="p-1 text-center font-mono text-[10px] ${c ? 'text-rose-600 font-bold' : 'text-slate-300'}">${c ? 'c:1' : ''}</td>
+                `).join('');
+                const sumRow = step.accumulatedSum.map(b => `
+                    <td class="p-1 text-center">
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 text-white font-mono text-xs font-bold shadow-sm">${b}</span>
+                    </td>
+                `).join('');
+
+                sumHtml = `
+                    <tr class="border-t border-dashed border-slate-300">
+                        <td class="py-1 px-3 font-mono text-[11px] text-rose-600 font-semibold">Ripple Carries</td>
+                        ${carryRow}
+                    </tr>
+                    <tr class="border-t-2 border-slate-300 bg-indigo-50/60">
+                        <td class="py-2.5 px-3 font-mono text-xs font-extrabold text-indigo-800">Partial Sum</td>
+                        ${sumRow}
+                    </tr>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3.5 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h4 class="font-display font-bold text-sm text-slate-900">${step.title}</h4>
+                            <p class="text-xs text-slate-600 mt-0.5">${step.desc}</p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 font-mono text-[11px] font-semibold text-indigo-700">
+                            Hover any cell to highlight Mᵢ ∧ Qⱼ
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto pb-1">
+                        <table class="mx-auto border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="p-1.5 text-left font-mono text-[11px] text-slate-400">Weight</th>
+                                    ${weightTh}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="py-1 px-3 font-mono text-xs font-semibold text-slate-500">Multiplicand (M)</td>
+                                    ${mCells}
+                                </tr>
+                                <tr class="border-b-2 border-slate-200">
+                                    <td class="py-1 px-3 font-mono text-xs font-semibold text-slate-500">× Multiplier (Q)</td>
+                                    ${qCells}
+                                </tr>
+                                ${ppRowsHtml}
+                                ${sumHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function highlightGate(mIdx, qIdx, active) {
+            const mEl = document.getElementById(`arr-m-${mIdx}`);
+            const qEl = document.getElementById(`arr-q-${qIdx}`);
+            if (mEl) mEl.classList.toggle('gate-highlight', active);
+            if (qEl) qEl.classList.toggle('gate-highlight', active);
+        }
+
+        // 3. Signed Bit Multiplication Renderer
+        function renderSignedTrace(container) {
+            const visible = state.steps.slice(0, state.currentStep + 1);
+            const isSignMag = visible[0]?.subMode === 'signmag';
+
+            if (isSignMag) {
+                const rows = visible.map((s, idx) => {
+                    const isCur = idx === visible.length - 1;
+                    return `
+                        <tr onclick="jumpToStep(${idx})" class="cursor-pointer border-b border-slate-100 transition-colors ${isCur ? 'bg-indigo-50/70' : 'hover:bg-slate-50'}">
+                            <td class="py-3 px-3 font-mono text-xs font-bold text-slate-500">${s.stepNum === 0 ? 'Init' : `Bit ${s.stepNum - 1}`}</td>
+                            <td class="py-3 px-3 text-center">
+                                <span class="inline-flex items-center justify-center w-6 h-7 rounded-md border border-rose-300 bg-rose-50 text-rose-700 font-mono text-xs font-extrabold">${s.signOut}</span>
+                            </td>
+                            <td class="py-3 px-3 whitespace-nowrap">
+                                <span class="inline-flex px-2.5 py-1 rounded-lg border font-mono text-xs font-bold ${getActionBadgeClass(s.actionType)}">${s.actionLabel}</span>
+                            </td>
+                            <td class="py-3 px-3 whitespace-nowrap">
+                                <div class="inline-flex gap-1">${bitBoxes(s.accBin)}</div>
+                            </td>
+                            <td class="py-3 px-3 whitespace-nowrap">
+                                <div class="inline-flex gap-1">${bitBoxes(s.qBin, true, false)}</div>
+                            </td>
+                            <td class="py-3 px-3 text-xs text-slate-600">${s.note}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                container.innerHTML = `
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b-2 border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-50/80">
+                                <th class="py-2.5 px-3">Step</th>
+                                <th class="py-2.5 px-3 text-center">Sign (S<sub>M</sub>⊕S<sub>Q</sub>)</th>
+                                <th class="py-2.5 px-3">Operation</th>
+                                <th class="py-2.5 px-3">Magnitude ACC</th>
+                                <th class="py-2.5 px-3">|Q| Shift</th>
+                                <th class="py-2.5 px-3">Hardware Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+            } else {
+                const rows = visible.map((s, idx) => {
+                    const isCur = idx === visible.length - 1;
+                    return `
+                        <tr onclick="jumpToStep(${idx})" class="cursor-pointer border-b border-slate-100 transition-colors ${isCur ? 'bg-indigo-50/70' : 'hover:bg-slate-50'}">
+                            <td class="py-3 px-3 font-mono text-xs font-bold text-slate-500">${s.stepNum === 0 ? 'Init' : `Bit ${s.stepNum - 1}`}</td>
+                            <td class="py-3 px-3 text-center font-mono text-xs font-bold text-slate-800">${s.qBit}</td>
+                            <td class="py-3 px-3 text-center font-mono text-xs font-bold text-indigo-600">${s.weight}</td>
+                            <td class="py-3 px-3 whitespace-nowrap">
+                                <span class="inline-flex px-2.5 py-1 rounded-lg border font-mono text-xs font-bold ${getActionBadgeClass(s.actionType)}">${s.actionLabel}</span>
+                            </td>
+                            <td class="py-3 px-3 whitespace-nowrap">
+                                <div class="inline-flex gap-1">${bitBoxes(s.accBin, false, true)}</div>
+                            </td>
+                            <td class="py-3 px-3 text-xs text-slate-600">${s.note}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                container.innerHTML = `
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b-2 border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-50/80">
+                                <th class="py-2.5 px-3">Step</th>
+                                <th class="py-2.5 px-3 text-center">Q<sub>j</sub></th>
+                                <th class="py-2.5 px-3 text-center">Weight</th>
+                                <th class="py-2.5 px-3">Operation</th>
+                                <th class="py-2.5 px-3">2N-Bit Sign-Extended AC</th>
+                                <th class="py-2.5 px-3">Explanation</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+            }
+        }
+
+        // =========================================================================
+        // 4. INTERACTIVE CRISP SVG FLOWCHART RENDERER
+        // =========================================================================
+        function renderSvgFlowchart(activeStep) {
+            const container = document.getElementById('svgFlowchartContainer');
+            const pill = document.getElementById('flowActivePill');
+            const caption = document.getElementById('flowCaption');
+            const activeNode = activeStep ? activeStep.flowNode : null;
+
+            const statusNames = {
+                init: 'Init Registers',
+                sub: 'AC ← AC - M',
+                add: 'AC ← AC + M',
+                shift: 'ASHR Shift',
+                done: 'Complete',
+                and_grid: 'AND Gate Matrix',
+                adder_stage: 'Adder Array',
+                output: 'Final Output',
+                xor_sign: 'S_M ⊕ S_Q',
+                add_mag: 'Add |M|',
+                shift_mag: 'Shift |Q|',
+                combine: 'Attach Sign',
+                sign_ext: '2N Sign-Extend',
+                add_ext: 'AC + (M << j)',
+                sub_msb: 'AC - (M << N-1)',
+                shift_next: 'Next Bit'
+            };
+
+            pill.textContent = activeNode ? (statusNames[activeNode] || 'Active') : 'Idle';
+            caption.textContent = activeStep
+                ? (activeStep.note || activeStep.desc || 'Executing active hardware stage.')
+                : 'Step through the simulation to watch the active control unit state highlight live on the flowchart.';
+
+            if (state.mode === 'booth') {
+                const pairText = activeStep?.prevPair || activeStep?.pair || 'Q₀Q₋₁';
+                const isInit = activeNode === 'init';
+                const isSub = activeNode === 'sub';
+                const isAdd = activeNode === 'add';
+                const isShift = activeNode === 'shift';
+                const isDone = activeNode === 'done';
+                const isCheck = isSub || isAdd || isShift;
+
+                container.innerHTML = `
+                    <svg viewBox="0 0 380 435" class="w-full max-w-[380px] h-auto select-none font-sans">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8"/>
+                            </marker>
+                            <marker id="arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#4f46e5"/>
+                            </marker>
+                        </defs>
+
+                        <!-- START / INIT NODE -->
+                        <g class="${isInit ? 'svg-node-active' : ''}">
+                            <rect x="85" y="10" width="210" height="48" rx="24"
+                                fill="${isInit ? '#4f46e5' : '#ffffff'}"
+                                stroke="${isInit ? '#3730a3' : '#cbd5e1'}" stroke-width="2"/>
+                            <text x="190" y="31" text-anchor="middle" font-size="11" font-weight="700" fill="${isInit ? '#ffffff' : '#0f172a'}">START / INITIALIZE</text>
+                            <text x="190" y="46" text-anchor="middle" font-size="9.5" font-family="JetBrains Mono, monospace" fill="${isInit ? '#e0e7ff' : '#64748b'}">AC←0, Q←Mlt, Q₋₁←0, SC←N</text>
+                        </g>
+
+                        <line x1="190" y1="58" x2="190" y2="84" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+                        <!-- DECISION DIAMOND: Check Q0 Q-1 -->
+                        <g class="${isCheck ? 'svg-node-active' : ''}">
+                            <polygon points="190,86 272,130 190,174 108,130"
+                                fill="${isCheck ? '#eef2ff' : '#fffbeb'}"
+                                stroke="${isCheck ? '#4f46e5' : '#f59e0b'}" stroke-width="2"/>
+                            <text x="190" y="127" text-anchor="middle" font-size="11" font-weight="700" fill="${isCheck ? '#312e81' : '#92400e'}">Inspect Q₀Q₋₁</text>
+                            <text x="190" y="142" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700" fill="${isCheck ? '#4f46e5' : '#b45309'}">[ ${pairText} ]</text>
+                        </g>
+
+                        <!-- Left Branch: 10 -> AC = AC - M -->
+                        <polyline points="108,130 58,130 58,195" fill="none" stroke="${isSub ? '#e11d48' : '#94a3b8'}" stroke-width="1.8" marker-end="url(#arrow)"/>
+                        <text x="76" y="123" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700" fill="#e11d48">10</text>
+                        <g class="${isSub ? 'svg-node-active' : ''}">
+                            <rect x="8" y="197" width="102" height="44" rx="10"
+                                fill="${isSub ? '#e11d48' : '#fff1f2'}"
+                                stroke="${isSub ? '#be123c' : '#fecdd3'}" stroke-width="2"/>
+                            <text x="59" y="217" text-anchor="middle" font-size="10.5" font-family="JetBrains Mono, monospace" font-weight="700" fill="${isSub ? '#ffffff' : '#9f1239'}">AC ← AC - M</text>
+                            <text x="59" y="231" text-anchor="middle" font-size="9" fill="${isSub ? '#ffe4e6' : '#be123c'}">Add 2's Comp</text>
+                        </g>
+
+                        <!-- Center Branch: 00 / 11 -->
+                        <line x1="190" y1="174" x2="190" y2="266" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+                        <rect x="163" y="206" width="54" height="20" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+                        <text x="190" y="219" text-anchor="middle" font-size="9.5" font-family="JetBrains Mono, monospace" font-weight="700" fill="#475569">00 / 11</text>
+
+                        <!-- Right Branch: 01 -> AC = AC + M -->
+                        <polyline points="272,130 322,130 322,195" fill="none" stroke="${isAdd ? '#059669' : '#94a3b8'}" stroke-width="1.8" marker-end="url(#arrow)"/>
+                        <text x="292" y="123" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700" fill="#059669">01</text>
+                        <g class="${isAdd ? 'svg-node-active' : ''}">
+                            <rect x="270" y="197" width="102" height="44" rx="10"
+                                fill="${isAdd ? '#059669' : '#ecfdf5'}"
+                                stroke="${isAdd ? '#047857' : '#a7f3d0'}" stroke-width="2"/>
+                            <text x="321" y="217" text-anchor="middle" font-size="10.5" font-family="JetBrains Mono, monospace" font-weight="700" fill="${isAdd ? '#ffffff' : '#065f46'}">AC ← AC + M</text>
+                            <text x="321" y="231" text-anchor="middle" font-size="9" fill="${isAdd ? '#d1fae5' : '#047857'}">Binary Add</text>
+                        </g>
+
+                        <!-- Converge to ASHR -->
+                        <polyline points="59,241 59,255 182,255" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+                        <polyline points="321,241 321,255 198,255" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+
+                        <!-- ASHR NODE -->
+                        <g class="${isShift ? 'svg-node-active' : ''}">
+                            <rect x="75" y="268" width="230" height="46" rx="12"
+                                fill="${isShift ? '#4f46e5' : '#eef2ff'}"
+                                stroke="${isShift ? '#3730a3' : '#c7d2fe'}" stroke-width="2"/>
+                            <text x="190" y="288" text-anchor="middle" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700" fill="${isShift ? '#ffffff' : '#312e81'}">ASHR [AC, Q, Q₋₁]</text>
+                            <text x="190" y="303" text-anchor="middle" font-size="9.5" fill="${isShift ? '#e0e7ff' : '#4338ca'}">Arithmetic Right Shift &amp; SC ← SC - 1</text>
+                        </g>
+
+                        <line x1="190" y1="314" x2="190" y2="334" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+                        <!-- LOOP CHECK: SC == 0? -->
+                        <polygon points="190,336 245,358 190,380 135,358" fill="#ffffff" stroke="#94a3b8" stroke-width="1.8"/>
+                        <text x="190" y="361" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700" fill="#334155">SC == 0?</text>
+
+                        <!-- Loop Back (No) -->
+                        <polyline points="135,358 18,358 18,108 144,108" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+                        <text x="105" y="352" font-size="9.5" font-weight="700" fill="#64748b">No</text>
+
+                        <!-- Yes -> END -->
+                        <line x1="190" y1="380" x2="190" y2="395" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arrow)"/>
+                        <text x="202" y="390" font-size="9.5" font-weight="700" fill="#059669">Yes</text>
+
+                        <g class="${isDone ? 'svg-node-active' : ''}">
+                            <rect x="95" y="396" width="190" height="34" rx="17"
+                                fill="${isDone ? '#059669' : '#ffffff'}"
+                                stroke="${isDone ? '#047857' : '#cbd5e1'}" stroke-width="2"/>
+                            <text x="190" y="417" text-anchor="middle" font-size="11" font-weight="700" fill="${isDone ? '#ffffff' : '#0f172a'}">END: Product in [AC | Q]</text>
+                        </g>
+                    </svg>
+                `;
+            } else if (state.mode === 'array') {
+                const isGrid = activeNode === 'and_grid';
+                const isAdder = activeNode === 'adder_stage';
+                const isOut = activeNode === 'output';
+
+                container.innerHTML = `
+                    <svg viewBox="0 0 360 360" class="w-full max-w-[360px] h-auto select-none font-sans">
+                        <defs>
+                            <marker id="arr-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Operands -->
+                        <rect x="65" y="14" width="230" height="48" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+                        <text x="180" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">LOAD UNSIGNED OPERANDS</text>
+                        <text x="180" y="50" text-anchor="middle" font-size="9.5" font-family="JetBrains Mono, monospace" fill="#64748b">M[N-1:0] &amp; Q[N-1:0]</text>
+
+                        <line x1="180" y1="62" x2="180" y2="96" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arr-a)"/>
+                        <text x="190" y="83" font-size="9.5" font-weight="600" fill="#64748b">Parallel Fan-Out</text>
+
+                        <!-- AND Gate Matrix -->
+                        <g class="${isGrid ? 'svg-node-active' : ''}">
+                            <rect x="45" y="98" width="270" height="58" rx="14"
+                                fill="${isGrid ? '#4f46e5' : '#eef2ff'}"
+                                stroke="${isGrid ? '#3730a3' : '#c7d2fe'}" stroke-width="2"/>
+                            <text x="180" y="123" text-anchor="middle" font-size="11.5" font-weight="700" fill="${isGrid ? '#ffffff' : '#312e81'}">N × N AND-GATE ARRAY</text>
+                            <text x="180" y="140" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" fill="${isGrid ? '#e0e7ff' : '#4338ca'}">PP[j, i] = Mᵢ ∧ Qⱼ (Shifted by j)</text>
+                        </g>
+
+                        <line x1="180" y1="156" x2="180" y2="192" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arr-a)"/>
+                        <text x="190" y="178" font-size="9.5" font-weight="600" fill="#64748b">Column Alignment</text>
+
+                        <!-- Ripple / Carry-Save Adder Tree -->
+                        <g class="${isAdder ? 'svg-node-active' : ''}">
+                            <rect x="45" y="194" width="270" height="58" rx="14"
+                                fill="${isAdder ? '#4f46e5' : '#fffbeb'}"
+                                stroke="${isAdder ? '#3730a3' : '#fde68a'}" stroke-width="2"/>
+                            <text x="180" y="219" text-anchor="middle" font-size="11.5" font-weight="700" fill="${isAdder ? '#ffffff' : '#92400e'}">ADDER REDUCTION STAGES</text>
+                            <text x="180" y="236" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" fill="${isAdder ? '#e0e7ff' : '#b45309'}">Half Adders (HA) + Full Adders (FA)</text>
+                        </g>
+
+                        <line x1="180" y1="252" x2="180" y2="288" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arr-a)"/>
+                        <text x="190" y="274" font-size="9.5" font-weight="600" fill="#64748b">Final Carry Out</text>
+
+                        <!-- 2N Output -->
+                        <g class="${isOut ? 'svg-node-active' : ''}">
+                            <rect x="65" y="290" width="230" height="50" rx="25"
+                                fill="${isOut ? '#059669' : '#ecfdf5'}"
+                                stroke="${isOut ? '#047857' : '#a7f3d0'}" stroke-width="2"/>
+                            <text x="180" y="312" text-anchor="middle" font-size="11.5" font-weight="700" fill="${isOut ? '#ffffff' : '#065f46'}">2N-BIT PRODUCT P[2N-1:0]</text>
+                            <text x="180" y="327" text-anchor="middle" font-size="9.5" font-family="JetBrains Mono, monospace" fill="${isOut ? '#d1fae5' : '#047857'}">Combinational Sum Complete</text>
+                        </g>
+                    </svg>
+                `;
+            } else {
+                const sub = document.getElementById('signedSubMode').value;
+                if (sub === 'signmag') {
+                    const isXor = activeNode === 'xor_sign';
+                    const isAdd = activeNode === 'add_mag';
+                    const isShift = activeNode === 'shift_mag';
+                    const isComb = activeNode === 'combine';
+
+                    container.innerHTML = `
+                        <svg viewBox="0 0 360 360" class="w-full max-w-[360px] h-auto select-none font-sans">
+                            <defs>
+                                <marker id="arr-sm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8"/>
+                                </marker>
+                            </defs>
+
+                            <g class="${isXor ? 'svg-node-active' : ''}">
+                                <rect x="45" y="14" width="270" height="54" rx="14"
+                                    fill="${isXor ? '#e11d48' : '#fff1f2'}"
+                                    stroke="${isXor ? '#be123c' : '#fecdd3'}" stroke-width="2"/>
+                                <text x="180" y="37" text-anchor="middle" font-size="11" font-weight="700" fill="${isXor ? '#ffffff' : '#9f1239'}">EXTRACT SIGN &amp; MAGNITUDES</text>
+                                <text x="180" y="53" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" fill="${isXor ? '#ffe4e6' : '#be123c'}">S_out = S_M ⊕ S_Q • |M|, |Q|</text>
+                            </g>
+
+                            <line x1="180" y1="68" x2="180" y2="104" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arr-sm)"/>
+
+                            <!-- Decision: Q_i == 1? -->
+                            <polygon points="180,106 250,142 180,178 110,142" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+                            <text x="180" y="145" text-anchor="middle" font-size="10.5" font-family="JetBrains Mono, monospace" font-weight="700" fill="#92400e">Bit |Q|ᵢ == 1?</text>
+
+                            <!-- Left: Yes -> Add |M| -->
+                            <polyline points="110,142 75,142 75,198" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arr-sm)"/>
+                            <text x="84" y="135" font-size="9.5" font-weight="700" fill="#059669">Yes</text>
+                            <g class="${isAdd ? 'svg-node-active' : ''}">
+                                <rect x="14" y="200" width="136" height="46" rx="10"
+                                    fill="${isAdd ? '#059669' : '#ecfdf5'}"
+                                    stroke="${isAdd ? '#047857' : '#a7f3d0'}" stroke-width="2"/>
+                                <text x="82" y="220" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700" fill="${isAdd ? '#ffffff' : '#065f46'}">ACC + (|M| &lt;&lt; i)</text>
+                                <text x="82" y="234" text-anchor="middle" font-size="9" fill="${isAdd ? '#d1fae5' : '#047857'}">Accumulate &amp; Shift</text>
+                            </g>
+
+                            <!-- Right: No -> Shift |Q| -->
+                            <polyline points="250,142 282,142 282,198" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arr-sm)"/>
+                            <text x="260" y="135" font-size="9.5" font-weight="700" fill="#64748b">No</text>
+                            <g class="${isShift ? 'svg-node-active' : ''}">
+                                <rect x="210" y="200" width="136" height="46" rx="10"
+                                    fill="${isShift ? '#4f46e5' : '#eef2ff'}"
+                                    stroke="${isShift ? '#3730a3' : '#c7d2fe'}" stroke-width="2"/>
+                                <text x="278" y="220" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700" fill="${isShift ? '#ffffff' : '#312e81'}">ACC + 0 &amp; Shift</text>
+                                <text x="278" y="234" text-anchor="middle" font-size="9" fill="${isShift ? '#e0e7ff' : '#4338ca'}">Right Shift |Q|</text>
+                            </g>
+
+                            <polyline points="82,246 82,268 180,268 180,290" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arr-sm)"/>
+                            <polyline points="278,246 278,268 180,268" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+
+                            <g class="${isComb ? 'svg-node-active' : ''}">
+                                <rect x="55" y="292" width="250" height="48" rx="24"
+                                    fill="${isComb ? '#059669' : '#ffffff'}"
+                                    stroke="${isComb ? '#047857' : '#cbd5e1'}" stroke-width="2"/>
+                                <text x="180" y="313" text-anchor="middle" font-size="11" font-weight="700" fill="${isComb ? '#ffffff' : '#0f172a'}">ATTACH SIGN BIT S_out</text>
+                                <text x="180" y="328" text-anchor="middle" font-size="9.5" font-family="JetBrains Mono, monospace" fill="${isComb ? '#d1fae5' : '#64748b'}">Result = [ S_out | ACC ]</text>
+                            </g>
+                        </svg>
+                    `;
+                } else {
+                    const isExt = activeNode === 'sign_ext';
+                    const isAddE = activeNode === 'add_ext';
+                    const isSubM = activeNode === 'sub_msb';
+                    const isNext = activeNode === 'shift_next';
+                    const isDone = activeNode === 'done';
+
+                    container.innerHTML = `
+                        <svg viewBox="0 0 360 385" class="w-full max-w-[360px] h-auto select-none font-sans">
+                            <defs>
+                                <marker id="arr-tc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8"/>
+                                </marker>
+                            </defs>
+
+                            <g class="${isExt ? 'svg-node-active' : ''}">
+                                <rect x="45" y="12" width="270" height="50" rx="14"
+                                    fill="${isExt ? '#4f46e5' : '#ffffff'}"
+                                    stroke="${isExt ? '#3730a3' : '#cbd5e1'}" stroke-width="2"/>
+                                <text x="180" y="34" text-anchor="middle" font-size="11" font-weight="700" fill="${isExt ? '#ffffff' : '#0f172a'}">SIGN-EXTEND M TO 2N BITS</text>
+                                <text x="180" y="49" text-anchor="middle" font-size="9.5" font-family="JetBrains Mono, monospace" fill="${isExt ? '#e0e7ff' : '#64748b'}">Replicate MSB sign bit across 2N width</text>
+                            </g>
+
+                            <line x1="180" y1="62" x2="180" y2="92" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arr-tc)"/>
+
+                            <!-- Two Branches: j < N-1 vs j == N-1 (MSB) -->
+                            <g class="${isAddE ? 'svg-node-active' : ''}">
+                                <rect x="14" y="94" width="154" height="52" rx="12"
+                                    fill="${isAddE ? '#059669' : '#ecfdf5'}"
+                                    stroke="${isAddE ? '#047857' : '#a7f3d0'}" stroke-width="2"/>
+                                <text x="91" y="116" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700" fill="${isAddE ? '#ffffff' : '#065f46'}">j &lt; N-1 &amp; Qⱼ=1</text>
+                                <text x="91" y="132" text-anchor="middle" font-size="9.5" fill="${isAddE ? '#d1fae5' : '#047857'}">AC ← AC + (M_ext&lt;&lt;j)</text>
+                            </g>
+
+                            <g class="${isSubM ? 'svg-node-active' : ''}">
+                                <rect x="192" y="94" width="154" height="52" rx="12"
+                                    fill="${isSubM ? '#e11d48' : '#fff1f2'}"
+                                    stroke="${isSubM ? '#be123c' : '#fecdd3'}" stroke-width="2"/>
+                                <text x="269" y="116" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700" fill="${isSubM ? '#ffffff' : '#9f1239'}">MSB j=N-1 &amp; Qⱼ=1</text>
+                                <text x="269" y="132" text-anchor="middle" font-size="9.5" fill="${isSubM ? '#ffe4e6' : '#be123c'}">AC ← AC - (M_ext&lt;&lt;j)</text>
+                            </g>
+
+                            <polyline points="91,146 91,175 180,175 180,196" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arr-tc)"/>
+                            <polyline points="269,146 269,175 180,175" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+
+                            <g class="${isNext ? 'svg-node-active' : ''}">
+                                <rect x="65" y="198" width="230" height="46" rx="12"
+                                    fill="${isNext ? '#4f46e5' : '#eef2ff'}"
+                                    stroke="${isNext ? '#3730a3' : '#c7d2fe'}" stroke-width="2"/>
+                                <text x="180" y="218" text-anchor="middle" font-size="11" font-weight="700" fill="${isNext ? '#ffffff' : '#312e81'}">ADVANCE BIT INDEX j ← j + 1</text>
+                                <text x="180" y="233" text-anchor="middle" font-size="9.5" fill="${isNext ? '#e0e7ff' : '#4338ca'}">If Qⱼ = 0, AC passes unchanged</text>
+                            </g>
+
+                            <line x1="180" y1="244" x2="180" y2="294" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#arr-tc)"/>
+                            <text x="190" y="274" font-size="9.5" font-weight="600" fill="#64748b">All N bits done</text>
+
+                            <g class="${isDone ? 'svg-node-active' : ''}">
+                                <rect x="55" y="296" width="250" height="48" rx="24"
+                                    fill="${isDone ? '#059669' : '#ffffff'}"
+                                    stroke="${isDone ? '#047857' : '#cbd5e1'}" stroke-width="2"/>
+                                <text x="180" y="317" text-anchor="middle" font-size="11" font-weight="700" fill="${isDone ? '#ffffff' : '#0f172a'}">2N-BIT SIGNED 2'S COMP PRODUCT</text>
+                                <text x="180" y="332" text-anchor="middle" font-size="9.5" font-family="JetBrains Mono, monospace" fill="${isDone ? '#d1fae5' : '#64748b'}">Verified Result in Accumulator</text>
+                            </g>
+                        </svg>
+                    `;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
